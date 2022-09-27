@@ -1,0 +1,73 @@
+﻿@page "/employees" 
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+
+<h3>Employees</h3>
+
+<div class="row">
+    <div class="col-12 text-end">
+        <a href="employeesForm">New employee</a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    @if (oResponse != null && oResponse.Data != null) //Check if there's a response from the server
+    {
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>UserId</th>
+                <th>FirstName</th>
+                <th>MiddleName</th>
+                <th>LastName</th>
+                <th>DepartmentId</th>
+                <th>EmployeeTypeId</th>
+                <th></th>
+            </tr>
+        </thead>
+        @foreach (var oElement in oResponse.Data)
+        {
+            <tbody>
+                <tr>
+                    <td>@oElement.Id</td>
+                    <td>@oElement.UserId</td>
+                    <td>@oElement.FirstName</td>
+                    <td>@oElement.MiddleName</td>
+                    <td>@oElement.LastName</td>
+                    <td>@oElement.DepartmentId</td>
+                    <td>@oElement.EmployeeTypeId</td>
+                    <td>
+                        <a href="/employeesForm/@oElement.Id">Edit</a>
+                        <a href="/employeesDelete/@oElement.Id">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        }
+    }
+    else
+    {
+        <p>Retrieving data...</p>
+    }
+</table>
+
+
+
+@code {
+    public string Url = "api/Employee/"; // defines url of the API response
+    public Response<List<Employee>>? oResponse = new Response<List<Employee>>();
+
+    //Populate employee with response from server
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            oResponse = await Http.GetFromJsonAsync<Response<List<Employee>>>(Url);
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

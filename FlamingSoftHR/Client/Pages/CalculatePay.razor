@@ -1,0 +1,33 @@
+﻿@page "/calculatePay"
+
+@inject HttpClient Http
+
+<h3>Calculate employee pay</h3>
+
+<table class="table table-striped">
+    
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Employee type</th>
+                <th>Hour salary</th>
+                <th>Regular hours</th>
+                <th>Sick hours</th>
+                <th>Vacations</th>
+                <th></th>
+            </tr>
+        </thead>
+</table>
+
+<div>
+    <button @onclick="Calculate">Calculate</button>
+</div>
+
+<p>Total: @total</p>
+
+@code {
+    private double total = 0;
+    private async Task Calculate(){}
+}

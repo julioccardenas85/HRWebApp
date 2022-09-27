@@ -1,0 +1,92 @@
+﻿@page "/loggedTimesForm" // route to add new log record
+@page "/loggedTimesForm/{Id:int}" // route to edit a record
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+@if (Id == 0)
+{
+    <h3>Add new log record</h3>
+}
+else
+{
+    <h3>Edit a record</h3>
+}
+
+<EditForm Model="@oLoggedTime">
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Date logged</label>
+            <div class="col-sm-9">
+                <InputDate class="form-control" @bind-Value="@oLoggedTime.DateLogged"></InputDate>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Hours</label>
+            <div class="col-sm-9">
+                <InputNumber TValue="double" class="form-control" @bind-Value="@oLoggedTime.Hours"></InputNumber>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Log type</label>
+            <div class="col-sm-9">
+                <InputNumber TValue="int" class="form-control" @bind-Value="@oLoggedTime.LogType"></InputNumber>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">EmployeeID</label>
+            <div class="col-sm-9">
+                <InputNumber TValue="int" class="form-control" @bind-Value="@oLoggedTime.EmployeeId"></InputNumber>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Add">Save</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; } //Parameter to edit a record
+
+    LoggedTime oLoggedTime = new LoggedTime();
+    Response<object>? oResponse = new Response<object>();
+    Response<LoggedTime>? oResponseLoggedTime = new Response<LoggedTime>();
+    public string Url = "api/LoggedTime/"; // Defines url of the API response
+
+    private async Task Add()
+    {
+        if (Id == 0) //On click method to add new log record to db
+        {
+            var response = await Http.PostAsJsonAsync<LoggedTime>(Url, oLoggedTime); //Populate LoggedTime object with data from interface
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result; //Deserialize LoggedTime to a generic object
+        }
+        else //On click method to edit record from db
+        {
+            var response = await Http.PutAsJsonAsync<LoggedTime>(Url, oLoggedTime);
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result;
+        }
+        navigationManager.NavigateTo("/loggedTimes"); //Returns to list page
+    }
+
+    //Get a record from db
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Id != 0)
+            {
+                oResponseLoggedTime = await Http.GetFromJsonAsync<Response<LoggedTime>>(Url + Id);
+                oLoggedTime = oResponseLoggedTime.Data;
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

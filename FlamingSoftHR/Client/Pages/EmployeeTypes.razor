@@ -1,0 +1,61 @@
+﻿@page "/employeeTypes"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+
+<h3>Employee Types</h3>
+
+<div class="row">
+    <div class="col-12 text-end">
+        <a href="employeeTypesForm">New employee type</a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    @if (oResponse != null && oResponse.Data != null) //Check if there's a response from the server
+    {
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        @foreach (var oElement in oResponse.Data)
+        {
+            <tbody>
+                <tr>
+                    <td>@oElement.Id</td>
+                    <td>@oElement.Description</td>
+                    <td>
+                        <a href="/employeeTypesForm/@oElement.Id">Edit</a>
+                        <a href="/employeeTypesDelete/@oElement.Id">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        }
+    }
+    else
+    {
+        <p>Retrieving data...</p>
+    }
+</table>
+
+@code {
+    public string Url = "api/EmployeeType/"; // defines url of the API response
+    public Response<List<EmployeeType>>? oResponse = new Response<List<EmployeeType>>();
+
+    //Populate employee with response from server
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            oResponse = await Http.GetFromJsonAsync<Response<List<EmployeeType>>>(Url);
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

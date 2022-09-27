@@ -1,0 +1,74 @@
+﻿@page "/loggedTimeTypesForm" // route to add new log type
+@page "/loggedTimeTypesForm/{Id:int}" // route to edit a log type
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+@if (Id == 0)
+{
+    <h3>Add new log type</h3>
+}
+else
+{
+    <h3>Edit a log type</h3>
+}
+
+<EditForm Model="@oLoggedTimeType">
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Description</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="@oLoggedTimeType.Description"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Add">Save</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; } //Parameter to edit a record
+
+    LoggedTimeType oLoggedTimeType = new LoggedTimeType();
+    Response<object>? oResponse = new Response<object>();
+    Response<LoggedTimeType>? oResponseLoggedTimeType = new Response<LoggedTimeType>();
+    public string Url = "api/LoggedTimeType/"; // Defines url of the API response
+
+    private async Task Add()
+    {
+        if (Id == 0) //On click method to add new log type to db
+        {
+            var response = await Http.PostAsJsonAsync<LoggedTimeType>(Url, oLoggedTimeType); //Populate LoggedTime object with data from interface
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result; //Deserialize LoggedTime to a generic object
+        }
+        else //On click method to edit record from db
+        {
+            var response = await Http.PutAsJsonAsync<LoggedTimeType>(Url, oLoggedTimeType);
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result;
+        }
+        navigationManager.NavigateTo("/loggedTimeTypes"); //Returns to list page
+    }
+
+    //Get a record from db
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Id != 0)
+            {
+                oResponseLoggedTimeType = await Http.GetFromJsonAsync<Response<LoggedTimeType>>(Url + Id);
+                oLoggedTimeType = oResponseLoggedTimeType.Data;
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

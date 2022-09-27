@@ -1,0 +1,105 @@
+﻿@page "/employeesForm" // route to add new employee
+@page "/employeesForm/{Id:int}" // route to edit a record
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+@if (Id == 0)
+{
+    <h3>Add new employee</h3>
+}
+else
+{
+    <h3>Edit employee data</h3>
+}
+
+<EditForm Model="@oEmployee">
+    <div class="container-fluid">
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">User ID</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="@oEmployee.UserId"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">First name</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="@oEmployee.FirstName"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Middle name</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="@oEmployee.MiddleName"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Last name</label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @bind-Value="@oEmployee.LastName"></InputText>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Department ID</label>
+            <div class="col-sm-9">
+                <InputNumber TValue="int" class="form-control" @bind-Value="@oEmployee.DepartmentId"></InputNumber>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <label class="col-sm-3">Employee type ID</label>
+            <div class="col-sm-9">
+                <InputNumber TValue="int" class="form-control" @bind-Value="@oEmployee.EmployeeTypeId"></InputNumber>
+            </div>
+        </div>
+        <div class="form-group row mb-1">
+            <div class="col-sm-12">
+                <button class="btn btn-primary" @onclick="Add">Save</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; } //Parameter to edit a record
+
+    Employee oEmployee = new Employee();
+    Response<object>? oResponse = new Response<object>();
+    Response<Employee>? oResponseEmployee = new Response<Employee>();
+    public string Url = "api/Employee/"; // Defines url of the API response
+
+    
+    private async Task Add()
+    {
+        if (Id == 0) //On click method to add new employee to db
+        {
+            var response = await Http.PostAsJsonAsync<Employee>(Url, oEmployee); //Populate Employee object with data from interface
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result; //Deserialize Employee to a generic object
+        }
+        else //On click method to edit record from db
+        {
+            var response = await Http.PutAsJsonAsync<Employee>(Url, oEmployee); //Populate Employee object with data from interface
+            oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result; //Deserialize Employee to a generic object
+        }
+        navigationManager.NavigateTo("/employees"); //Returns to list page
+    }
+
+    //Get a record from db
+    protected override async Task OnInitializedAsync() 
+    {
+        try
+        {
+            if (Id != 0) 
+            {
+                oResponseEmployee = await Http.GetFromJsonAsync<Response<Employee>>(Url + Id);
+                oEmployee = oResponseEmployee.Data;
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

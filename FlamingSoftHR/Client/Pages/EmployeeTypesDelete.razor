@@ -1,0 +1,32 @@
+﻿@page "/employeeTypesDelete/{Id:int}"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+<h3>Delete employee type</h3>
+
+<p>Are you sure about deleting employee type with ID @Id ?</p>
+
+<div>
+    <button @onclick="Delete">Delete</button>
+    <button @onclick="Cancel">Cancel</button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; } //Parameter to delete a record
+
+    Response<object>? oResponse = new Response<object>();
+    public string Url = "api/EmployeeType/"; // Defines url of the API response
+
+    private async Task Delete()
+    {
+        var response = await Http.DeleteAsync(Url + Id); //Sends request and ID to delete
+        oResponse = response.Content.ReadFromJsonAsync<Response<object>>().Result; //Deserialize EmployeeType to a generic object
+        navigationManager.NavigateTo("/employeeTypes"); //Returns to list page
+    }
+
+    private void Cancel() => navigationManager.NavigateTo("/employeeTypes"); //Returns to list page
+}

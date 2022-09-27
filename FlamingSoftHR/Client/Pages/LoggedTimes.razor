@@ -1,0 +1,67 @@
+﻿@page "/loggedTimes"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+
+<h3>Logged Times</h3>
+
+<div class="row">
+    <div class="col-12 text-end">
+        <a href="loggedTimesForm">New record</a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    @if (oResponse != null && oResponse.Data != null) //Check if there's a response from the server
+    {
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date logged</th>
+                <th>Hours</th>
+                <th>Log type</th>
+                <th>Employee ID</th>
+                <th></th>
+            </tr>
+        </thead>
+        @foreach (var oElement in oResponse.Data)
+        {
+            <tbody>
+                <tr>
+                    <td>@oElement.Id</td>
+                    <td>@oElement.DateLogged</td>
+                    <td>@oElement.Hours</td>
+                    <td>@oElement.LogType</td>
+                    <td>@oElement.EmployeeId</td>
+                    <td>
+                        <a href="/loggedTimesForm/@oElement.Id">Edit</a>
+                        <a href="/loggedTimesDelete/@oElement.Id">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        }
+    }
+    else
+    {
+        <p>Retrieving data...</p>
+    }
+</table>
+
+@code {
+    public string Url = "api/loggedTime/"; // defines url of the API response
+    public Response<List<LoggedTime>>? oResponse = new Response<List<LoggedTime>>();
+
+    //Populate employee with response from server
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            oResponse = await Http.GetFromJsonAsync<Response<List<LoggedTime>>>(Url);
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}
